@@ -58,7 +58,7 @@ file_reader::file_reader(const file_reader& from) :
 
 bool file_reader::open_file(void)
 {
-    char header_line[80];
+    char header_line[90];
     const char expected_header_line[] = "dumpflags, time, exptime";
     if (!m_filename)
         return false;
@@ -214,9 +214,10 @@ memcache_item* file_reader::read_item(void)
     unsigned int s_flags = 0;
     unsigned int s_clsid = 0;
     unsigned int s_nkey = 0;
-
+    unsigned int s_op = 0;
+    
     // scan int values
-    if (fscanf(m_file, "%u, %u, %u, %u, %u, %u, %u, %u, ",
+    if (fscanf(m_file, "%u, %u, %u, %u, %u, %u, %u, %u, %u, ",
         &s_dumpflags,
         &s_time,
         &s_exptime,
@@ -224,13 +225,15 @@ memcache_item* file_reader::read_item(void)
         &s_nsuffix,
         &s_flags,
         &s_clsid,
-        &s_nkey) < 8) {
+	&s_op, 
+	&s_nkey) < 9) {
 
         if (is_eof())
             return NULL;
 
         fprintf(stderr, "%s:%u: error parsing item values.\n",
             m_filename, m_line);
+	exit(-1);
         return NULL;
     }
 
@@ -277,11 +280,29 @@ memcache_item* file_reader::read_item(void)
 
     m_line++;
 
+    Op tmp;
+    switch(s_op) {
+    case 0:
+      tmp = get;
+      break;
+    case 1:
+      tmp = set;
+      break;
+    case 2:
+      tmp = add;
+      break;
+    default:
+      tmp = nop;
+      break;
+    }
+    
     // return item
     memcache_item *item = new memcache_item(s_dumpflags,
-        s_time, s_exptime, s_flags, s_nsuffix, s_clsid);
+					    s_time, s_exptime, s_flags, s_nsuffix, s_clsid, tmp);
     item->set_key(key, s_nkey);
     item->set_data(data, s_nbytes);
+
+    printf("%s: %s %s\n", __func__, key, data);
 
     return item;
 }

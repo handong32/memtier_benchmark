@@ -472,6 +472,7 @@ static int config_parse_args(int argc, char *argv[], struct benchmark_config *cf
         { "data-size-pattern",          1, 0, o_data_size_pattern },
         { "expiry-range",               1, 0, o_expiry_range },
         { "data-import",                1, 0, o_data_import },
+	{ "data-import-debug",          0, 0, 'I' },
         { "data-verify",                0, 0, o_data_verify },
         { "verify-only",                0, 0, o_verify_only },
         { "generate-keys",              0, 0, o_generate_keys },
@@ -504,7 +505,7 @@ static int config_parse_args(int argc, char *argv[], struct benchmark_config *cf
     int c;
     char *endptr;
     while ((c = getopt_long(argc, argv,
-                "vs:S:p:P:o:x:DRn:c:t:d:a:h:46", long_options, &option_index)) != -1)
+                "vs:S:p:P:o:x:DIRn:c:t:d:a:h:46", long_options, &option_index)) != -1)
     {
         switch (c) {
                 case o_help:
@@ -574,6 +575,9 @@ static int config_parse_args(int argc, char *argv[], struct benchmark_config *cf
                 case 'D':
                     cfg->debug++;
                     break;
+	        case 'I':
+		    cfg->data_import_debug++;
+		    break;
                 case o_show_config:
                     cfg->show_config++;
                     break;

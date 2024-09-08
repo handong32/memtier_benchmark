@@ -23,6 +23,17 @@
 
 #include <stdlib.h>
 
+/** operations **/
+enum Op {
+  set,
+  get,
+  add,
+  replace,
+  append,
+  prepend,
+  nop
+};
+
 /** \name values of the bitwise dump flag */
 #define ITEM_DUMPFLAGS_EXPIRED      0x0001      /** item's expiration time has passed when dump conducted */
 
@@ -40,13 +51,15 @@ protected:
     char *m_key;                    /** item's key */
     char *m_data;                   /** item's data */
     unsigned long int m_version;    /** item version, as determined by PCRE regex */
+    Op m_op;
 public:
     memcache_item(unsigned int dumpflags,
         time_t time,
         time_t exptime,
         unsigned short flags,
         unsigned int nsuffix,
-        unsigned int clsid);
+        unsigned int clsid,
+	Op op);
     void set_key(char *key, unsigned int nkey);
     void set_data(char *data, unsigned int nbytes);
     ~memcache_item();
@@ -69,6 +82,7 @@ public:
     void set_version(unsigned long int version);
     unsigned long int get_version(void);
 
+    Op get_op(void);
     int operator <(const memcache_item &a);
 };
 

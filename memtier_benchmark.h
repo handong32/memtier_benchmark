@@ -80,6 +80,7 @@ struct benchmark_config {
     const char *data_size_pattern;
     struct config_range expiry_range;
     const char *data_import;
+    int data_import_debug;
     int data_verify;
     int verify_only;
     int generate_keys;

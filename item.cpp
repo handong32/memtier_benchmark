@@ -29,10 +29,11 @@ memcache_item::memcache_item(unsigned int dumpflags, time_t time,
     time_t exptime,
     unsigned short flags,
     unsigned int nsuffix,
-    unsigned int clsid) :
+    unsigned int clsid,
+    Op op) :
     m_dumpflags(dumpflags), m_time(time), m_exptime(exptime),
     m_flags(flags), m_nsuffix(nsuffix), m_clsid(clsid),
-    m_version(0)
+    m_version(0), m_op(op)
 {
     m_key = NULL;
     m_data = NULL;
@@ -143,6 +144,11 @@ int memcache_item::operator<(const memcache_item& a)
         return 1;
     else
         return 0;
+}
+
+Op memcache_item::get_op(void)
+{
+    return m_op;
 }
 
 int memcache_item_ptr_cmp(memcache_item *a, memcache_item *b)

@@ -90,7 +90,8 @@ protected:
     gaussian_noise m_random;
     unsigned int m_value_buffer_size;
     unsigned int m_value_buffer_mutation_pos;
-
+    Op m_op;
+  
     void alloc_value_buffer(void);
     void alloc_value_buffer(const char* copy_from);
     void random_init(void);
@@ -117,7 +118,8 @@ public:
     void generate_key(unsigned long long key_index);
     const char * get_key() { return m_key; }
     int get_key_len() { return m_key_len; }
-
+    Op get_op() { return m_op; }
+  
     const char * get_key_prefix();
     virtual const char* get_value(unsigned long long key_index, unsigned int *len);
     virtual unsigned int get_expiry();

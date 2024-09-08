@@ -551,6 +551,8 @@ void import_object_generator::read_next_item() {
 
     m_key = m_cur_item->get_key();
     m_key_len = m_cur_item->get_nkey();
+
+    m_op = m_cur_item->get_op();
 }
 
 void import_object_generator::read_next_key(unsigned long long key_index) {

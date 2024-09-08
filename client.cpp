@@ -330,6 +330,7 @@ bool client::create_set_request(struct timeval& timestamp, unsigned int conn_id)
 
 bool client::create_get_request(struct timeval& timestamp, unsigned int conn_id) {
     unsigned long long key_index;
+    benchmark_debug_log("%s\n", __func__);    
     get_key_response res = get_key_for_conn(GET_CMD_IDX, conn_id, &key_index);
     if (res == not_available)
         return false;
@@ -363,6 +364,8 @@ bool client::create_mget_request(struct timeval& timestamp, unsigned int conn_id
 // This function could use some urgent TLC -- but we need to do it without altering the behavior
 void client::create_request(struct timeval timestamp, unsigned int conn_id)
 {
+    benchmark_debug_log("%s\n", __func__);
+    
     // are we using arbitrary command?
     if (m_config->arbitrary_commands->is_defined()) {
         if (create_arbitrary_request(m_executed_command_index, timestamp, conn_id)) {
@@ -372,8 +375,42 @@ void client::create_request(struct timeval timestamp, unsigned int conn_id)
         return;
     }
 
+    if (m_config->data_import_debug) {
+      benchmark_debug_log("*** %s data_import_debug\n", __func__);
+      if (!m_config->data_import) {
+	benchmark_error_log("-I requires --data-import csv file\n");
+	exit(0);
+      }
+
+      dynamic_cast<import_object_generator*>(m_obj_gen)->read_next_item();
+      switch(m_obj_gen->get_op()) {
+      case get:
+	benchmark_debug_log("%s GET OP\n", __func__);
+	if (!create_get_request(timestamp, conn_id))
+	  return;
+
+	m_reqs_generated++;
+	break;
+      case set:
+	benchmark_debug_log("%s SET OP\n", __func__);
+	if (!create_set_request(timestamp, conn_id))
+	  return;
+
+        m_reqs_generated++;
+        m_tot_set_ops++;
+
+	break;
+      case add:
+	benchmark_debug_log("%s ADD OP\n", __func__);
+	break;
+      default:
+	benchmark_debug_log("%s UNKNOWN OP\n", __func__);
+	break;
+      }	    
+    }
+    
     // If the Set:Wait ratio is not 0, start off with WAITs
-    if (m_config->wait_ratio.b &&
+    else if (m_config->wait_ratio.b &&
         (m_tot_wait_ops == 0 ||
          (m_tot_set_ops/m_tot_wait_ops > m_config->wait_ratio.a/m_config->wait_ratio.b))) {
         if (!create_wait_request(timestamp, conn_id))
@@ -387,7 +424,7 @@ void client::create_request(struct timeval timestamp, unsigned int conn_id)
     else if (m_set_ratio_count < m_config->ratio.a) {
         /* Before we can create a SET request, we need to read the next imported item */
         if (m_config->data_import) {
-            dynamic_cast<import_object_generator*>(m_obj_gen)->read_next_item();
+	    dynamic_cast<import_object_generator*>(m_obj_gen)->read_next_item();
         }
 
         if (!create_set_request(timestamp, conn_id))
@@ -503,6 +540,7 @@ bool verify_client::create_wait_request(struct timeval& timestamp, unsigned int 
 
 bool verify_client::create_set_request(struct timeval& timestamp, unsigned int conn_id) {
     unsigned long long key_index;
+    benchmark_debug_log("%s\n", __func__);
     get_key_response res = get_key_for_conn(SET_CMD_IDX, conn_id, &key_index);
     if (res == not_available)
         return false;
@@ -522,6 +560,7 @@ bool verify_client::create_set_request(struct timeval& timestamp, unsigned int c
 bool verify_client::create_get_request(struct timeval& timestamp, unsigned int conn_id) {
     // Just Keep object generator synced
     unsigned long long key_index;
+    benchmark_debug_log("%s\n", __func__);
     get_key_for_conn(GET_CMD_IDX, conn_id, &key_index);
 
     return true;
